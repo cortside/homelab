@@ -102,22 +102,22 @@ resource "proxmox_virtual_environment_vm" "ubuntu_vm" {
   #     host        = self.ipv4_addresses[0]
   #   }
 
-  #   # Install and configure Docker
-  #   provisioner "remote-exec" {
-  #     inline = [
-  #       "sudo apt update -y",
-  #       "sudo apt upgrade -y",
-  #       "sudo apt install -y docker.io",
-  #       "sudo systemctl start docker",
-  #       "sudo systemctl enable docker",
-  #       "sudo groupadd docker || true",
-  #       "sudo usermod -aG docker ${var.vm_ci_user}",
-  #       "sudo chown root:docker /var/run/docker.sock",
-  #       "sudo chown -R root:docker /var/run/docker",
-  #       "echo 'Docker installation completed successfully'",
-  #       "docker --version"
-  #     ]
-  #   }
+  # Install and configure Docker
+  provisioner "remote-exec" {
+    inline = [
+    #   "sudo apt update -y",
+    #   "sudo apt upgrade -y",
+    #   "sudo apt install -y docker.io",
+    #   "sudo systemctl start docker",
+    #   "sudo systemctl enable docker",
+    #   "sudo groupadd docker || true",
+    #   "sudo usermod -aG docker ${var.vm_ci_user}",
+    #   "sudo chown root:docker /var/run/docker.sock",
+    #   "sudo chown -R root:docker /var/run/docker",
+    #   "echo 'Docker installation completed successfully'",
+    #   "docker --version"
+    ]
+  }
 
   #   # Capture Docker installation status
   #   provisioner "local-exec" {
