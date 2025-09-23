@@ -11,7 +11,6 @@ packages:
 
 # Enable password authentication for SSH
 ssh_pwauth: true
-password_auth: true
 
 # Create default user (this approach doesn't use Proxmox ciuser/cipassword)
 users:
@@ -22,6 +21,8 @@ users:
     lock_passwd: false
      # Password hash (generated with: mkpasswd -m sha-512)
     passwd: "$6$aLmC1nm04gRkdMpR$bSz.NMI2nwlTpdXXhgHYPOg394STKbYN/mFf4xbrwb8Ven4LXfCqnjMct9LtMhXiJ6OKVif6Y/dI2.qZp6b870"
+    ssh_authorized_keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOV0cwFWu49zwx8PRP2Qr28xGqLaeImQ35NIfhgR48xZ cort@eschaefer.net"
 
 ## Set default user password (alternative method)
 #chpasswd:
@@ -30,8 +31,24 @@ users:
 #  expire: false
 
 runcmd:
-  - systemctl enable qemu-guest-agent
+  # Enable password authentication in SSH config and restart SSH service
+  - sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+  - sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+  - sed -i 's/^#PermitEmptyPasswords no/PermitEmptyPasswords no/' /etc/ssh/sshd_config
+  - systemctl restart ssh
+  # Install updates and qemu-guest-agent
+  - apt update
+  - apt upgrade -y
+  - apt install -y qemu-guest-agent
+  - echo "qemu-guest-agent installed" >> /var/log/cloud-init-custom.log
+  # Start the qemu-guest-agent service (no enable needed)
   - systemctl start qemu-guest-agent
   - systemctl enable ssh
   - systemctl start ssh
   - echo "Cloud-init configuration completed" >> /var/log/cloud-init-custom.log
+
+power_state:
+  mode: reboot
+  message: Rebooting after cloud-init
+  timeout: 30
+  condition: true

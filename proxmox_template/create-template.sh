@@ -1,5 +1,7 @@
 #!/bin/bash
 
+## qm stop 110 && qm destroy 110 && ./create-template.sh && qm clone 9000 110 --name test-template && qm set 110 --agent enabled=1 && qm start 110
+
 # Proxmox VM Template Creation Script
 # Creates an Ubuntu 24.04 cloud-init template
 
