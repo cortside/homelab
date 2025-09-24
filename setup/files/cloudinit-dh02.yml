@@ -15,6 +15,7 @@ packages:
   - curl
   - gnupg
   - lsb-release
+  - cifs-utils
 
 # Enable password authentication for SSH
 ssh_pwauth: true

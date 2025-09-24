@@ -1,6 +1,6 @@
 #cloud-config
-hostname: ${hostname}
-fqdn: ${hostname}.${domain}
+hostname: dh03
+fqdn: dh03.local
 
 package_update: true
 packages:
@@ -22,15 +22,17 @@ ssh_pwauth: true
 
 # Create default user (this approach doesn't use Proxmox ciuser/cipassword)
 users:
-  - name: ${username}
+  - name: cort
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
     groups: [sudo, docker]
     shell: /bin/bash
     lock_passwd: false
      # Password hash (generated with: mkpasswd -m sha-512)
-    passwd: ${password_hash}
+    passwd: $6$aLmC1nm04gRkdMpR$bSz.NMI2nwlTpdXXhgHYPOg394STKbYN/mFf4xbrwb8Ven4LXfCqnjMct9LtMhXiJ6OKVif6Y/dI2.qZp6b870
     ssh_authorized_keys:
-      - ${ssh_key}
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOV0cwFWu49zwx8PRP2Qr28xGqLaeImQ35NIfhgR48xZ cort@eschaefer.net
+
+
 
 runcmd:
   # Enable password authentication in SSH config and restart SSH service
@@ -55,16 +57,14 @@ runcmd:
   - apt update
   - apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   - echo "docker install completed" >> /var/log/cloud-init-custom.log
-  - usermod -aG docker ${username}
+  - usermod -aG docker cort
   - systemctl enable docker
   - systemctl start docker
   - echo "docker configuration completed" >> /var/log/cloud-init-custom.log
-  - mkdir /mnt/share
-  - printf "username=${cifs_username}\npassword=${cifs_password}\n" > ~/.smbcredentials
-  - chmod 600 ~/.smbcredentials
-  - echo "//192.168.0.23/work/k8s-share /mnt/share cifs credentials=/root/.smbcredentials,uid=45,gid=45,vers=3.0" >> /etc/fstab
+  - sed -i 's/^ExecStart=\/usr\/bin\/dockerd -H fd:\/\/ --containerd=\/run\/containerd\/containerd.sock/ExecStart=\/usr\/bin\/dockerd -H fd:\/\/ -H tcp:\/\/0.0.0.0:2375 --containerd=\/run\/containerd\/containerd.sock/' /lib/systemd/system/docker.service
   - systemctl daemon-reload
-  - mount -a
+  - systemctl restart docker
+  - echo "docker remote API enabled" >> /var/log/cloud-init-custom.log
 
 power_state:
   mode: reboot
