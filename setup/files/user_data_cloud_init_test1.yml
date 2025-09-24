@@ -65,6 +65,7 @@ runcmd:
   - echo "//192.168.0.23/work/k8s-share /mnt/share cifs credentials=/root/.smbcredentials,uid=45,gid=45,vers=3.0" >> /etc/fstab
   - systemctl daemon-reload
   - mount -a
+  - echo "cifs mount completed" >> /var/log/cloud-init-custom.log
 
 power_state:
   mode: reboot
