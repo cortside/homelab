@@ -6,8 +6,16 @@ variable "ssh_key" {
 }
 #Establish which Proxmox host you'd like to spin a VM up on
 variable "proxmox_host" {
+  default = "192.168.0.20" # IP or FQDN of Proxmox host
+}
+variable "proxmox_node" {
   default = "pve"
 }
+# root password for the Proxmox host
+# This is only used for the file provisioner to copy the cloud-init file to the host
+variable "proxmox_host_password" {
+}
+
 #Specify which template name you'd like to use
 variable "template_name" {
   default = "ubuntu-24.04-cloud-init-template"
@@ -34,4 +42,17 @@ variable "token_secret" {
 }
 #Blank var for use by terraform.tfvars
 variable "token_id" {
+}
+
+
+
+# Declare the vm_name variable
+variable "vm_name" {
+  description = "The hostname for the VM"
+  type        = string
+}
+variable "pm_tls_insecure" {
+  description = "Set to true to disable TLS verification"
+  type        = bool
+  default     = true
 }
