@@ -1,7 +1,7 @@
-resource "proxmox_vm_qemu" "cloudinit-test" {
-  name       = var.vm_name
-  description       = "Testing Terraform and cloud-init"
-  depends_on = [null_resource.cloud_init_test1]
+resource "proxmox_vm_qemu" "dh01" {
+  name        = "dh01" //var.vm_name
+  description = "Docker Host 01"
+  depends_on  = [null_resource.cloud_init_dh01]
   # Node name has to be the same name as within the cluster
   # this might not include the FQDN
   target_node = var.proxmox_node
@@ -13,11 +13,11 @@ resource "proxmox_vm_qemu" "cloudinit-test" {
 
   os_type = "cloud-init"
   cpu {
-    cores   = 2
+    cores   = 6
     sockets = 1
   }
   #cpu = "host"
-  memory = 2048
+  memory = 8192
   scsihw = "virtio-scsi-single"
 
   # Setup the disk
@@ -32,7 +32,7 @@ resource "proxmox_vm_qemu" "cloudinit-test" {
     scsi {
       scsi0 {
         disk {
-          size     = "32G"
+          size     = "250G"
           storage  = "warren"
           discard  = true
           iothread = true

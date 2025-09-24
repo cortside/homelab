@@ -1,6 +1,6 @@
 #cloud-config
-hostname: test1
-fqdn: test1.local
+hostname: dh02
+fqdn: dh02.local
 
 package_update: true
 packages:
