@@ -4,19 +4,21 @@
 # in the "files" directory under the directory you have your Terraform
 # files in.
 data "template_file" "cloud_init_dh02" {
-  template = file("${path.module}/files/cloudinit-dockerhost.yml")
+  template = file("${path.module}/files/cloudinit-dh02.yml")
 
   vars = {
     ssh_key  = file("~/.ssh/id_ed25519.pub")
     hostname = "dh02"
     domain   = "local"
+    username  = var.proxmox_host_user
+    password_hash = var.proxmox_host_password_hash
   }
 }
 
 # Create a local copy of the file, to transfer to Proxmox.
 resource "local_file" "cloud_init_dh02" {
   content  = data.template_file.cloud_init_dh02.rendered
-  filename = "${path.module}/files/cloudinit-dockerhost.yml"
+  filename = "${path.module}/files/cloudinit-dh02.yml"
 }
 
 # Transfer the file to the Proxmox Host

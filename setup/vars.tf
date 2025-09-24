@@ -56,3 +56,14 @@ variable "pm_tls_insecure" {
   type        = bool
   default     = true
 }
+
+variable "proxmox_host_password_hash" {
+  description = "The hashed password for the Proxmox host"
+  type        = string
+}
+
+variable "proxmox_host_user" {
+  description = "The user for the Proxmox host"
+  type        = string
+  default     = "ubuntu"
+}

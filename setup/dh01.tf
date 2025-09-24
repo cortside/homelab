@@ -61,5 +61,5 @@ resource "proxmox_vm_qemu" "dh01" {
       network
     ]
   }
-  cicustom = "user=local:snippets/cloud_init_test1.yml"
+  cicustom = "user=local:snippets/cloud_init_dh01.yml"
 }
