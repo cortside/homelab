@@ -1,0 +1,84 @@
+#cloud-config
+hostname: ${hostname}
+fqdn: ${hostname}.${domain}
+
+package_update: true
+packages:
+  - qemu-guest-agent
+  - htop
+  - curl
+  - nano
+  - net-tools
+  - openssh-server
+  - whois
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+  - cifs-utils
+
+# Enable password authentication for SSH
+ssh_pwauth: true
+
+# Create default user (this approach doesn't use Proxmox ciuser/cipassword)
+users:
+  - name: ${username}
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    groups: [sudo, docker]
+    shell: /bin/bash
+    lock_passwd: false
+     # Password hash (generated with: mkpasswd -m sha-512)
+    passwd: ${password_hash}
+    ssh_authorized_keys:
+      - ${ssh_key}
+
+
+runcmd:
+  # Enable password authentication in SSH config and restart SSH service
+  - sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+  - sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+  - sed -i 's/^#PermitEmptyPasswords no/PermitEmptyPasswords no/' /etc/ssh/sshd_config
+  - systemctl restart ssh
+  # Install updates and qemu-guest-agent
+  - apt update
+  - apt upgrade -y
+  - apt install -y qemu-guest-agent
+  - echo "qemu-guest-agent installed" >> /var/log/cloud-init-custom.log
+  # Start the qemu-guest-agent service (no enable needed)
+  - systemctl start qemu-guest-agent
+  - systemctl enable ssh
+  - systemctl start ssh
+  - echo "Cloud-init configuration completed" >> /var/log/cloud-init-custom.log
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  - chmod a+r /etc/apt/keyrings/docker.gpg
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+  - apt update
+  - apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  - echo "docker install completed" >> /var/log/cloud-init-custom.log
+  - usermod -aG docker ${username}
+  - systemctl enable docker
+  - systemctl start docker
+  - echo "docker configuration completed" >> /var/log/cloud-init-custom.log
+  - cat /lib/systemd/system/docker.service | grep ExecStart
+  - cat /lib/systemd/system/docker.service | grep ExecStart >> /var/log/cloud-init-custom.log
+  - sed -i 's/dockerd -H fd/dockerd -H tcp:\/\/0.0.0.0:2375 -H fd/' /lib/systemd/system/docker.service
+  - cat /lib/systemd/system/docker.service | grep ExecStart >> /var/log/cloud-init-custom.log
+  - cat /lib/systemd/system/docker.service | grep ExecStart
+  - systemctl daemon-reload
+  - systemctl restart docker
+  - echo "docker remote API enabled" >> /var/log/cloud-init-custom.log
+  - mkdir /mnt/share
+  - touch ~/.smbcredentials
+  - printf "username=${cifs_username}\npassword=${cifs_password}\n" > ~/.smbcredentials
+  - chmod 600 ~/.smbcredentials
+  - echo "//192.168.0.23/work/k8s-share /mnt/share cifs credentials=/root/.smbcredentials,uid=45,gid=45,vers=3.0" >> /etc/fstab
+  - systemctl daemon-reload
+  - mount -a
+  - echo "cifs mount completed" >> /var/log/cloud-init-custom.log
+
+power_state:
+  mode: reboot
+  message: Rebooting after cloud-init
+  timeout: 30
+  condition: true
