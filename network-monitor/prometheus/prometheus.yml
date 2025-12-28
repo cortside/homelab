@@ -1,0 +1,12 @@
+## sudo apt install prometheus-node-exporter
+
+global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: 'apache'
+    metrics_path: /server-status
+    static_configs:
+      - targets: ['web_server:80']
+  - job_name: 'node'
+    static_configs:
+      - targets: ['192.168.0.2:9100','192.168.0.3:9100','192.168.0.4:9100']

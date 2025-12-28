@@ -1,0 +1,24 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: 'smtp.gmail.com:465' # Replace with your SMTP server and port
+  smtp_from: 'email@domain.com' # Replace with your sender email address
+  smtp_auth_username: 'email@domain.com' # Optional: if your SMTP server requires authentication
+  smtp_auth_password: 'password' # Optional: if your SMTP server requires authentication
+  smtp_require_tls: true # Optional: Set to false if TLS is not required  
+route:
+  receiver: 'email-notification'
+  group_by: ['alertname', 'severity']
+  group_wait: 10s
+  group_interval: 5m
+  repeat_interval: 3h
+receivers:
+- name: 'email-notification'
+  email_configs:
+  - to: 'email@domain.com'
+    send_resolved: true
+inhibit_rules:
+- source_match:
+    severity: 'critical'
+  target_match:
+    severity: 'warning'
+  equal: ['alertname', 'instance']

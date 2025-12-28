@@ -1,0 +1,42 @@
+# https://medium.com/@ravipatel.it/building-a-monitoring-stack-with-prometheus-grafana-and-alerting-a-docker-compose-ef78127e4a19
+
+services:
+  prometheus:
+    image: prom/prometheus
+    user: "45:45"
+    ports:
+      - '9090:9090'
+    volumes:
+      - /mnt/share/network-monitor/prometheus/config:/etc/prometheus
+      - /mnt/share/network-monitor/prometheus/data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--web.enable-lifecycle'
+    restart: always
+  
+  grafana:
+    image: grafana/grafana
+    ports:
+      - '3000:3000'
+    depends_on:
+      - prometheus
+    restart: always
+
+  alertmanager:
+    image: prom/alertmanager
+    ports:
+      - '9093:9093'
+    volumes:
+      - /mnt/share/network-monitor/alertmanager:/etc/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    restart: always
+    
+  web_server:
+    image: httpd:latest
+    ports:
+      - '80:80'
+    volumes:
+      - /mnt/share/network-monitor/httpd/httpd.conf:/usr/local/apache2/conf/httpd.conf
+    restart: always
+  
